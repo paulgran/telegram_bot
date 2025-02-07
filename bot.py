@@ -30,7 +30,7 @@ main_keyboard = ReplyKeyboardMarkup(
 # Обработчик команды /start
 @dp.message(Command("start"))
 async def start_command(message: types.Message):
-    await message.answer("Добрый день! Мы рады видеть вас в нашем Дайв Центре Scuba Birds. Чем могу вам помочь?", reply_markup=main_keyboard)
+    await message.answer("Добрый день! Мы рады приветствовать вас в нашем Дайв Центре Scuba Birds. Чем могу вам помочь?", reply_markup=main_keyboard)
 
 # Информация об услугах
 @dp.message(lambda message: message.text == "📋 Наши услуги")
@@ -46,17 +46,17 @@ async def services(message: types.Message):
 @dp.message(lambda message: message.text == "💰 Цены")
 async def prices(message: types.Message):
     text = "💰 Наши цены:\n\n" \
-           "🔹 Пробное погружение — 2800 TBH \n" \
-           "🔹 Курс Open Water Diver (до 18 метров) — 8990 TBH \n" \
-           "🔹 Курс Advance Open Water Diver — 8490 THB \n" \
-           "🔹 Курс Rescue Diver — 8500 THB \n\n" \
+           "🔹 Пробное погружение — 2,800 TBH \n" \
+           "🔹 Курс Open Water Diver (до 18 метров) — 8,990 TBH \n" \
+           "🔹 Курс Advance Open Water Diver — 8,490 THB \n" \
+           "🔹 Курс Rescue Diver — 8,500 THB \n\n" \
            "Свяжитесь с нами для заказа!"
     await message.answer(text)
 
 # Отправка документов
 @dp.message(lambda message: message.text == "📂 Получить документы")
 async def send_documents(message: types.Message):
-    document_path = "docs/example.pdf"  # Путь к файлу
+    document_path = "medical_form.pdf"  # Путь к файлу
     with open(document_path, "rb") as doc:
         await message.answer_document(doc, caption="📎 Вот ваш документ!")
 
@@ -64,7 +64,7 @@ async def send_documents(message: types.Message):
 @dp.message(lambda message: message.text == "💳 Оплатить")
 async def payment_link(message: types.Message):
     text = "💳 Оплатить можно по ссылке:\n\n" \
-           "[Оплата](https://example.com/payment)"
+           "[Оплата](https://wise.com/pay/business/scubabirdscoltd)"
     await message.answer(text, parse_mode="Markdown")
 
 # Функция для запуска бота
