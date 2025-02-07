@@ -6,13 +6,10 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
 import os
 
-TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 if not TOKEN:
-    print("❌ Ошибка: Переменная TELEGRAM_BOT_TOKEN не загружена!")
-else:
-    print(f"✅ TOKEN загружен: {TOKEN[:5]}... (длина: {len(TOKEN)})")
-
+    raise ValueError("❌ Ошибка: TELEGRAM_BOT_TOKEN не загружен!")
 
 
 # Создаём бота и диспетчер
@@ -33,16 +30,16 @@ main_keyboard = ReplyKeyboardMarkup(
 # Обработчик команды /start
 @dp.message(Command("start"))
 async def start_command(message: types.Message):
-    await message.answer("Добрый день! Мы рады видеть вас в нашем Дайв Центре. Чем могу вам помочь?", reply_markup=main_keyboard)
+    await message.answer("Добрый день! Мы рады видеть вас в нашем Дайв Центре Scuba Birds. Чем могу вам помочь?", reply_markup=main_keyboard)
 
 # Информация об услугах
 @dp.message(lambda message: message.text == "📋 Наши услуги")
 async def services(message: types.Message):
     text = "📌 Мы предлагаем следующие услуги:\n" \
            "1️⃣ Пробное погружение\n" \
-           "2️⃣ Получение сертификата Дайвера\n" \
+           "2️⃣ Получение первичного сертификата Дайвера\n" \
            "3️⃣ Fun Diving\n\n" \
-           "Напишите, если у вас есть вопросы!"
+           "Ознакомьтесь с нашими ценами в разделе "Цены"!"
     await message.answer(text)
 
 # Отправка цен
