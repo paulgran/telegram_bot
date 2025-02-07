@@ -45,26 +45,25 @@ async def services(message: types.Message):
         "1️⃣ [Пробное погружение Discover Scuba Diving](https://www.scubabirds.com/padi-courses/beginners/discover-scuba-diving.html)\n"
         "2️⃣ [Получение первичного сертификата (Scuba Diver / Open Water Diver)](https://www.scubabirds.com/padi-courses/beginners/padi-open-water-diver.html)\n"
         "3️⃣ [Продолжение обучения (Advance Open Water Diver / Rescue Diver)](https://www.scubabirds.com/padi-courses/for-certified-divers/padi-advanced-open-water-diver.html)\n"
-        "4️⃣ [Fun Diving](hhttps://www.scubabirds.com/ko-tao/fun-diving-packages.html)\n\n"
+        "4️⃣ [Fun Diving](https://www.scubabirds.com/ko-tao/fun-diving-packages.html)\n\n"
         "📌 Более детально с нашими программами погружений вы можете ознакомиться на нашем сайте [здесь](https://www.scubabirds.com/)."
     )
-    await message.answer(text, parse_mode="Markdown", disable_web_page_preview=True)  
-    # `disable_web_page_preview=True` убирает превью страницы
+    await message.answer(text, parse_mode="Markdown", disable_web_page_preview=True)
 
 # Отправка цен
 @router.message(lambda message: message.text == "💰 Цены")
 async def prices(message: types.Message):
     text = (
-        "💰 Наши цены:\n\n"
-        "🔹 PADI Discover Scuba Diving - 2 800 THB\n"
-        "🔹 PADI Scuba Diver - 7 500 THB\n"
-        "🔹 PADI Open Water Diver - 8 990 THB\n"
-        "🔹 Advance Open Water Diver – 8 500 THB\n"
-        "🔹 Rescue Diver – 8 500 THB\n"
-        "🔹 Fun Diving – от 1 400 THB\n\n"
-        "Более детально с нашими ценами погружений вы можете ознакомиться на нашем сайте https://www.scubabirds.com/"
+        "💰 *Наши цены:*\n\n"
+        "🔹 [PADI Discover Scuba Diving - 2 800 THB](https://www.scubabirds.com/padi-courses/beginners/discover-scuba-diving.html)\n"
+        "🔹 [PADI Scuba Diver - 7 500 THB](https://www.scubabirds.com/padi-courses/beginners/padi-scuba-diver.html)\n"
+        "🔹 [PADI Open Water Diver - 8 990 THB](https://www.scubabirds.com/padi-courses/beginners/padi-open-water-diver.html)\n"
+        "🔹 [Advance Open Water Diver – 8 500 THB](https://www.scubabirds.com/padi-courses/for-certified-divers/padi-advanced-open-water-diver.html)\n"
+        "🔹 [Rescue Diver – 8 500 THB](https://www.scubabirds.com/padi-courses/for-certified-divers/padi-rescue-diver.html)\n"
+        "🔹 [Fun Diving – от 1 400 THB](https://www.scubabirds.com/ko-tao/fun-diving-packages.html)\n\n"
+        "📌 Более детально с нашими ценами погружений вы можете ознакомиться [на сайте](https://www.scubabirds.com/)."
     )
-    await message.answer(text)
+    await message.answer(text, parse_mode="Markdown", disable_web_page_preview=True)
 
 # Отправка документов
 @router.message(lambda message: message.text == "📂 Получить документы")
@@ -76,7 +75,6 @@ async def send_documents(message: types.Message):
             await message.answer_document(doc, caption="📎 Вот ваш документ!")
     else:
         await message.answer("❌ Ошибка: Файл 'medical_form.pdf' не найден. Проверьте наличие файла в папке с ботом.")
-
 
 # Отправка ссылки на оплату
 @router.message(lambda message: message.text == "💳 Оплатить")
