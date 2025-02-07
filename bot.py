@@ -68,13 +68,14 @@ async def prices(message: types.Message):
 # Отправка документов
 @router.message(lambda message: message.text == "📂 Получить документы")
 async def send_documents(message: types.Message):
-    document_path = "medical_form.pdf"
+    document_path = os.path.join(os.getcwd(), "medical_form.pdf")  # Подгружаем файл из текущей директории
     
     if os.path.exists(document_path):
         with open(document_path, "rb") as doc:
             await message.answer_document(doc, caption="📎 Вот ваш документ!")
     else:
-        await message.answer("❌ Ошибка: Файл с документами не найден.")
+        await message.answer("❌ Ошибка: Файл 'medical_form.pdf' не найден. Проверьте наличие файла в папке с ботом.")
+
 
 # Отправка ссылки на оплату
 @router.message(lambda message: message.text == "💳 Оплатить")
