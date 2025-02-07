@@ -41,14 +41,15 @@ async def start_command(message: types.Message):
 @router.message(lambda message: message.text == "📋 Наши услуги")
 async def services(message: types.Message):
     text = (
-        "📌 Мы предлагаем следующие услуги:\n"
-        "1️⃣ Пробное погружение Discover Scuba Diving\n"
-        "2️⃣ Получение первичного сертификата (Scuba Diver / Open Water Diver)\n"
-        "3️⃣ Продолжение обучения (Advance Open Water Diver / Rescue Diver)\n"
-        "4️⃣ Fun Diving\n\n"
-        "Более детально с нашими программами погружений вы можете ознакомиться на нашем сайте https://www.scubabirds.com/"
+        "📌 Мы предлагаем следующие услуги:\n\n"
+        "1️⃣ [Пробное погружение Discover Scuba Diving](https://www.scubabirds.com/padi-courses/beginners/discover-scuba-diving.html)\n"
+        "2️⃣ [Получение первичного сертификата (Scuba Diver / Open Water Diver)](https://www.scubabirds.com/padi-courses/beginners/padi-open-water-diver.html)\n"
+        "3️⃣ [Продолжение обучения (Advance Open Water Diver / Rescue Diver)](https://www.scubabirds.com/padi-courses/for-certified-divers/padi-advanced-open-water-diver.html)\n"
+        "4️⃣ [Fun Diving](hhttps://www.scubabirds.com/ko-tao/fun-diving-packages.html)\n\n"
+        "📌 Более детально с нашими программами погружений вы можете ознакомиться на нашем сайте [здесь](https://www.scubabirds.com/)."
     )
-    await message.answer(text)
+    await message.answer(text, parse_mode="Markdown", disable_web_page_preview=True)  
+    # `disable_web_page_preview=True` убирает превью страницы
 
 # Отправка цен
 @router.message(lambda message: message.text == "💰 Цены")
