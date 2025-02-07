@@ -1,7 +1,7 @@
 import logging
 import asyncio
 import os
-from aiogram import Bot, Dispatcher, types, Router, F
+from aiogram import Bot, Dispatcher, types, Router
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
 
@@ -33,13 +33,13 @@ main_keyboard = ReplyKeyboardMarkup(
 @router.message(Command("start"))
 async def start_command(message: types.Message):
     await message.answer(
-        "Добрый день! Мы рады приветствовать вас в нашем Дайв Центре *Scuba Birds*. Чем могу вам помочь?", 
-        parse_mode="MarkdownV2",
+        "Добрый день! Мы рады приветствовать вас в нашем Дайв Центре *Scuba Birds*.\nЧем могу вам помочь?", 
+        parse_mode="Markdown",
         reply_markup=main_keyboard
     )
 
 # Информация об услугах
-@router.message(F.text == "📋 Наши услуги")
+@router.message(lambda message: message.text == "📋 Наши услуги")
 async def services(message: types.Message):
     text = (
         "📌 *Мы предлагаем следующие услуги:*\n\n"
@@ -49,25 +49,25 @@ async def services(message: types.Message):
         "4️⃣ [Fun Diving](https://www.scubabirds.com/ko-tao/fun-diving-packages.html)\n\n"
         "📌 Более детально с нашими программами погружений вы можете ознакомиться на нашем сайте [здесь](https://www.scubabirds.com/)."
     )
-    await message.answer(text, parse_mode="MarkdownV2", disable_web_page_preview=True)
+    await message.answer(text, parse_mode="Markdown", disable_web_page_preview=True)
 
 # Отправка цен
-@router.message(F.text == "💰 Цены")
+@router.message(lambda message: message.text == "💰 Цены")
 async def prices(message: types.Message):
     text = (
         "💰 *Наши цены:*\n\n"
-        "🔹 [PADI Discover Scuba Diving \\- 2 800 THB](https://www.scubabirds.com/padi-courses/beginners/discover-scuba-diving.html)\n"
-        "🔹 [PADI Scuba Diver \\- 7 500 THB](https://www.scubabirds.com/padi-courses/beginners/padi-scuba-diver.html)\n"
-        "🔹 [PADI Open Water Diver \\- 8 990 THB](https://www.scubabirds.com/padi-courses/beginners/padi-open-water-diver.html)\n"
-        "🔹 [Advance Open Water Diver \\- 8 500 THB](https://www.scubabirds.com/padi-courses/for-certified-divers/padi-advanced-open-water-diver.html)\n"
-        "🔹 [Rescue Diver \\- 8 500 THB](https://www.scubabirds.com/padi-courses/for-certified-divers/padi-rescue-diver.html)\n"
-        "🔹 [Fun Diving \\- от 1 400 THB](https://www.scubabirds.com/ko-tao/fun-diving-packages.html)\n\n"
+        "🔹 [PADI Discover Scuba Diving - 2 800 THB](https://www.scubabirds.com/padi-courses/beginners/discover-scuba-diving.html)\n"
+        "🔹 [PADI Scuba Diver - 7 500 THB](https://www.scubabirds.com/padi-courses/beginners/padi-scuba-diver.html)\n"
+        "🔹 [PADI Open Water Diver - 8 990 THB](https://www.scubabirds.com/padi-courses/beginners/padi-open-water-diver.html)\n"
+        "🔹 [Advance Open Water Diver – 8 500 THB](https://www.scubabirds.com/padi-courses/for-certified-divers/padi-advanced-open-water-diver.html)\n"
+        "🔹 [Rescue Diver – 8 500 THB](https://www.scubabirds.com/padi-courses/for-certified-divers/padi-rescue-diver.html)\n"
+        "🔹 [Fun Diving – от 1 400 THB](https://www.scubabirds.com/ko-tao/fun-diving-packages.html)\n\n"
         "📌 Более детально с нашими ценами погружений вы можете ознакомиться [на сайте](https://www.scubabirds.com/)."
     )
-    await message.answer(text, parse_mode="MarkdownV2", disable_web_page_preview=True)
+    await message.answer(text, parse_mode="Markdown", disable_web_page_preview=True)
 
 # Отправка документов
-@router.message(F.text == "📂 Получить документы")
+@router.message(lambda message: message.text == "📂 Получить документы")
 async def send_documents(message: types.Message):
     document_path = os.path.join(os.getcwd(), "medical_form.pdf")  # Подгружаем файл из текущей директории
     
@@ -75,13 +75,13 @@ async def send_documents(message: types.Message):
         with open(document_path, "rb") as doc:
             await message.answer_document(doc, caption="📎 Вот ваш документ!")
     else:
-        await message.answer("❌ Ошибка: Файл 'medical_form.pdf' не найден. Проверьте наличие файла в папке с ботом.")
+        await message.answer("❌ Ошибка: Файл *medical_form.pdf* не найден.\nПроверьте наличие файла в папке с ботом.", parse_mode="Markdown")
 
 # Отправка ссылки на оплату
-@router.message(F.text == "💳 Оплатить")
+@router.message(lambda message: message.text == "💳 Оплатить")
 async def payment_link(message: types.Message):
-    text = "💳 Оплатить можно по ссылке:\n\n[Оплата](https://wise.com/pay/business/scubabirdscoltd)"
-    await message.answer(text, parse_mode="MarkdownV2")
+    text = "💳 *Оплатить можно по ссылке:*\n\n[Оплата](https://wise.com/pay/business/scubabirdscoltd)"
+    await message.answer(text, parse_mode="Markdown")
 
 # Функция для запуска бота
 async def main():
