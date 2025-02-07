@@ -1,96 +1,88 @@
 import logging
-import asyncio
 import os
-from aiogram import Bot, Dispatcher, types, Router
+from aiogram import Bot, Dispatcher, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
-from aiogram.filters import Command
+from aiogram.utils import executor
+from dotenv import load_dotenv
 
-# Загружаем токен из переменных окружения
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+# Загружаем токен из .env файла
+load_dotenv()
+TOKEN = os.getenv("BOT_TOKEN")
 
-if not TOKEN:
-    print("❌ Ошибка: TELEGRAM_BOT_TOKEN не загружен! Проверьте переменные окружения.")
-    exit(1)
-
-# Создаём бота и диспетчер
+# Настраиваем бота
 bot = Bot(token=TOKEN)
-dp = Dispatcher()
-router = Router()
-
-# Логирование
+dp = Dispatcher(bot)
 logging.basicConfig(level=logging.INFO)
 
-# Создаём клавиатуру с кнопками
-main_keyboard = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="📋 Наши услуги"), KeyboardButton(text="💰 Цены")],
-        [KeyboardButton(text="📂 Получить документы"), KeyboardButton(text="💳 Оплатить")]
-    ],
-    resize_keyboard=True
-)
+# Кнопки главного меню
+menu_buttons = ReplyKeyboardMarkup(resize_keyboard=True)
+menu_buttons.add(KeyboardButton("📋 Курсы"), KeyboardButton("💬 Частые вопросы"))
+menu_buttons.add(KeyboardButton("📅 Бронирование"), KeyboardButton("💰 Оплата"))
 
-# Обработчик команды /start
-@router.message(Command("start"))
-async def start_command(message: types.Message):
+# Ответы на вопросы
+FAQ = {
+    "Как забронировать курс?": "Чтобы забронировать курс, сделайте предоплату 400฿ и отправьте свои данные (имя, дату рождения, email).",
+    "Какие курсы вы предлагаете?": "Мы предлагаем PADI Open Water Diver, Advanced Open Water и другие. Напишите /courses для подробной информации.",
+    "Как оплатить?": "Вы можете сделать предоплату через Wise или PayPal. Ссылки на оплату отправим после бронирования.",
+    "Где находится дайв-центр?": "Наш дайв-центр находится на Ко Тао. Адрес: https://maps.app.goo.gl/dw5MsmvDowu3RSqF9"
+}
+
+# Команда /start
+@dp.message_handler(commands=['start'])
+async def send_welcome(message: types.Message):
     await message.answer(
-        "Добрый день! Мы рады приветствовать вас в нашем Дайв Центре *Scuba Birds*.\nЧем могу вам помочь?", 
-        parse_mode="Markdown",
-        reply_markup=main_keyboard
+        "Привет! 🤿 Добро пожаловать в PADI 5 Star Scuba Birds Dive Center! Чем могу помочь?", reply_markup=menu_buttons
     )
 
-# Информация об услугах
-@router.message(lambda message: message.text == "📋 Наши услуги")
-async def services(message: types.Message):
+# Команда /faq
+@dp.message_handler(lambda message: message.text == "💬 Частые вопросы")
+async def send_faq(message: types.Message):
+    faq_text = "Часто задаваемые вопросы:\n\n"
+    for q in FAQ.keys():
+        faq_text += f"🔹 {q}\n"
+    faq_text += "\nВыберите вопрос или напишите его в чат."
+    await message.answer(faq_text)
+
+# Ответы на частые вопросы
+@dp.message_handler(lambda message: message.text in FAQ.keys())
+async def answer_faq(message: types.Message):
+    await message.answer(FAQ[message.text])
+
+# Команда /courses
+@dp.message_handler(lambda message: message.text == "📋 Курсы")
+async def send_courses(message: types.Message):
     text = (
-        "📌 *Мы предлагаем следующие услуги:*\n\n"
-        "1️⃣ [Пробное погружение Discover Scuba Diving](https://www.scubabirds.com/padi-courses/beginners/discover-scuba-diving.html)\n"
-        "2️⃣ [Получение первичного сертификата (Scuba Diver / Open Water Diver)](https://www.scubabirds.com/padi-courses/beginners/padi-open-water-diver.html)\n"
-        "3️⃣ [Продолжение обучения (Advance Open Water Diver / Rescue Diver)](https://www.scubabirds.com/padi-courses/for-certified-divers/padi-advanced-open-water-diver.html)\n"
-        "4️⃣ [Fun Diving](https://www.scubabirds.com/ko-tao/fun-diving-packages.html)\n\n"
-        "📌 Более детально с нашими программами погружений вы можете ознакомиться на нашем сайте [здесь](https://www.scubabirds.com/)."
+        "📘 Наши курсы:\n\n"
+        "🔹 Open Water Diver - ฿8,890 (2.5 дня)\n"
+        "🔹 Advanced Open Water - ฿8,490 (2 дня)\n"
+        "🔹 Discover Scuba Diving - ฿1,800 (1 погружение) или ฿2,800 (2 погружения)\n\n"
+        "Выберите курс и напишите мне для бронирования! 🤿"
     )
-    await message.answer(text, parse_mode="Markdown", disable_web_page_preview=True)
+    await message.answer(text)
 
-# Отправка цен
-@router.message(lambda message: message.text == "💰 Цены")
-async def prices(message: types.Message):
+# Команда /booking
+@dp.message_handler(lambda message: message.text == "📅 Бронирование")
+async def book_course(message: types.Message):
+    await message.answer(
+        "Чтобы забронировать курс, пришлите:\n\n"
+        "1️⃣ Ваше имя и фамилию\n"
+        "2️⃣ Дату рождения (дд-мм-гггг)\n"
+        "3️⃣ Email\n"
+        "4️⃣ Название курса\n\n"
+        "После этого мы отправим вам ссылку на предоплату. 💰"
+    )
+
+# Команда /payment
+@dp.message_handler(lambda message: message.text == "💰 Оплата")
+async def send_payment_info(message: types.Message):
     text = (
-        "💰 *Наши цены:*\n\n"
-        "🔹 [PADI Discover Scuba Diving - 2 800 THB](https://www.scubabirds.com/padi-courses/beginners/discover-scuba-diving.html)\n"
-        "🔹 [PADI Scuba Diver - 7 500 THB](https://www.scubabirds.com/padi-courses/beginners/padi-scuba-diver.html)\n"
-        "🔹 [PADI Open Water Diver - 8 990 THB](https://www.scubabirds.com/padi-courses/beginners/padi-open-water-diver.html)\n"
-        "🔹 [Advance Open Water Diver – 8 500 THB](https://www.scubabirds.com/padi-courses/for-certified-divers/padi-advanced-open-water-diver.html)\n"
-        "🔹 [Rescue Diver – 8 500 THB](https://www.scubabirds.com/padi-courses/for-certified-divers/padi-rescue-diver.html)\n"
-        "🔹 [Fun Diving – от 1 400 THB](https://www.scubabirds.com/ko-tao/fun-diving-packages.html)\n\n"
-        "📌 Более детально с нашими ценами погружений вы можете ознакомиться [на сайте](https://www.scubabirds.com/)."
+        "💰 Оплата:\n\n"
+        "🔹 Wise: https://wise.com_ссылка\n"
+        "🔹 PayPal: https://paypal.me_ссылка\n\n"
+        "После предоплаты отправьте чек, чтобы подтвердить платеж."
     )
-    await message.answer(text, parse_mode="Markdown", disable_web_page_preview=True)
+    await message.answer(text)
 
-# Отправка документов
-@router.message(lambda message: message.text == "📂 Получить документы")
-async def send_documents(message: types.Message):
-    document_path = os.path.join(os.getcwd(), "medical_form.pdf")  # Подгружаем файл из текущей директории
-    
-    if os.path.exists(document_path):
-        with open(document_path, "rb") as doc:
-            await message.answer_document(doc, caption="📎 Вот ваш документ!")
-    else:
-        await message.answer("❌ Ошибка: Файл *medical_form.pdf* не найден.\nПроверьте наличие файла в папке с ботом.", parse_mode="Markdown")
-
-# Отправка ссылки на оплату
-@router.message(lambda message: message.text == "💳 Оплатить")
-async def payment_link(message: types.Message):
-    text = "💳 *Оплатить можно по ссылке:*\n\n[Оплата](https://wise.com/pay/business/scubabirdscoltd)"
-    await message.answer(text, parse_mode="Markdown")
-
-# Функция для запуска бота
-async def main():
-    dp.include_router(router)
-    await bot.delete_webhook(drop_pending_updates=True)
-    
-    print("🤖 Бот запущен!")
-    await dp.start_polling(bot)
-
-# Запуск бота через asyncio
-if __name__ == "__main__":
-    asyncio.run(main())
+# Запуск бота
+if __name__ == '__main__':
+    executor.start_polling(dp, skip_updates=True)
