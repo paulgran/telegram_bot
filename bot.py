@@ -4,11 +4,16 @@ import os
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
-from dotenv import load_dotenv
+import os
 
-# Загружаем токен из .env файла
-load_dotenv()
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+
+if not TOKEN:
+    print("❌ Ошибка: Переменная TELEGRAM_BOT_TOKEN не загружена!")
+else:
+    print(f"✅ TOKEN загружен: {TOKEN[:5]}... (длина: {len(TOKEN)})")
+
+
 
 # Создаём бота и диспетчер
 bot = Bot(token=TOKEN)
