@@ -1,80 +1,120 @@
 import logging
-from aiogram import Bot, Dispatcher, types
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
-from aiogram.utils import executor
+import asyncio
+import os
+from aiogram import Bot, Dispatcher, types, Router
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.filters import Command
 
-# Укажите ваш Telegram Bot Token
-TOKEN = "YOUR_BOT_TOKEN"
+# Загружаем токен из переменных окружения
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
-# Инициализация бота и диспетчера
+if not TOKEN:
+    print("\u274C Ошибка: TELEGRAM_BOT_TOKEN не загружен!")
+    exit(1)
+
+# Создаём бота и диспетчер
 bot = Bot(token=TOKEN)
-dp = Dispatcher(bot)
+dp = Dispatcher()
+router = Router()
 
 # Логирование
 logging.basicConfig(level=logging.INFO)
 
-# Клавиатура для главного меню
-main_menu = ReplyKeyboardMarkup(resize_keyboard=True)
-main_menu.add(KeyboardButton("📅 Забронировать дайвинг"))
-main_menu.add(KeyboardButton("ℹ️ Частые вопросы"))
-main_menu.add(KeyboardButton("💳 Оплата"))
-main_menu.add(KeyboardButton("📍 Локация дайв-центра"))
+# Создаём клавиатуру с кнопками
+main_keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="\ud83d\udccb Наши услуги"), KeyboardButton(text="\ud83d\udcb0 Цены")],
+        [KeyboardButton(text="\ud83d\udcc2 Получить документы"), KeyboardButton(text="\ud83d\udcb3 Оплатить")],
+        [KeyboardButton(text="\ud83d\udce4 Свяжитесь с нами")]
+    ],
+    resize_keyboard=True
+)
 
-# Часто задаваемые вопросы
-faq_text = """❓ Часто задаваемые вопросы:
-1️⃣ Какие программы у вас есть?
-   - Пробное погружение (Try Diving) – 1,800 THB
-   - Курс Open Water Diver – 8,890 THB
-   - Курс Advanced – 8,490 THB
+# Клавиатура для "Наши услуги"
+services_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Услуга 1", callback_data="service_1")],
+        [InlineKeyboardButton(text="Услуга 2", callback_data="service_2")],
+        [InlineKeyboardButton(text="Услуга 3", callback_data="service_3")],
+        [InlineKeyboardButton(text="Услуга 4", callback_data="service_4")],
+        [InlineKeyboardButton(text="Услуга 5", callback_data="service_5")],
+        [InlineKeyboardButton(text="Услуга 6", callback_data="service_6")],
+        [InlineKeyboardButton(text="Услуга 7", callback_data="service_7")],
+        [InlineKeyboardButton(text="Услуга 8", callback_data="service_8")],
+    ]
+)
 
-2️⃣ Что включено в стоимость?
-   ✅ Прокат снаряжения
-   ✅ Инструктор PADI
-   ✅ Легкие закуски, чай/кофе, вода
-   ✅ Страховка
+# Клавиатура для "Цены"
+prices_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Цена 1", callback_data="price_1")],
+        [InlineKeyboardButton(text="Цена 2", callback_data="price_2")],
+        [InlineKeyboardButton(text="Цена 3", callback_data="price_3")],
+        [InlineKeyboardButton(text="Цена 4", callback_data="price_4")],
+        [InlineKeyboardButton(text="Цена 5", callback_data="price_5")],
+        [InlineKeyboardButton(text="Цена 6", callback_data="price_6")],
+        [InlineKeyboardButton(text="Цена 7", callback_data="price_7")],
+        [InlineKeyboardButton(text="Цена 8", callback_data="price_8")],
+    ]
+)
 
-3️⃣ Какие методы оплаты?
-   - Wise: https://wise.com_ссылка
-   - PayPal: https://paypal.meссылка
-   - Наличными на месте
+# Обработчик команды /start
+@router.message(Command("start"))
+async def start_command(message: types.Message):
+    await message.answer(
+        "Добрый день! Мы рады приветствовать вас в нашем Дайв Центре Scuba Birds! Выберите нужный раздел:",
+        reply_markup=main_keyboard
+    )
 
-4️⃣ Где находится ваш дайв-центр?
-   📍 [Google Maps](https://maps.app.goo.gl/dw5MsmvDowu3RSqF9)
-"""
+# Обработчик кнопки "Наши услуги"
+@router.message(lambda message: message.text == "\ud83d\udccb Наши услуги")
+async def services_command(message: types.Message):
+    await message.answer("Наши услуги:", reply_markup=services_keyboard)
 
-# Хендлер для команды /start
-@dp.message_handler(commands=["start"])
-async def send_welcome(message: types.Message):
-    await message.answer("👋 Привет! Я бот дайв-центра Scuba Birds.\nВыберите действие:", reply_markup=main_menu)
+# Обработчик кнопки "Цены"
+@router.message(lambda message: message.text == "\ud83d\udcb0 Цены")
+async def prices_command(message: types.Message):
+    await message.answer("Наши цены:", reply_markup=prices_keyboard)
 
-# Хендлер для кнопки "Частые вопросы"
-@dp.message_handler(lambda message: message.text == "ℹ️ Частые вопросы")
-async def faq(message: types.Message):
-    await message.answer(faq_text, parse_mode="Markdown")
+# Обработчик кнопки "Свяжитесь с нами"
+@router.message(lambda message: message.text == "\ud83d\udce4 Свяжитесь с нами")
+async def contact_command(message: types.Message):
+    whatsapp_url = "https://wa.me/66990307571"
+    await message.answer(
+        "Нажмите на кнопку ниже, чтобы связаться с нами через WhatsApp:",
+        reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="Связаться в WhatsApp", url=whatsapp_url)]
+            ]
+        )
+    )
 
-# Хендлер для кнопки "Забронировать дайвинг"
-@dp.message_handler(lambda message: message.text == "📅 Забронировать дайвинг")
-async def booking(message: types.Message):
-    await message.answer("📌 Выберите программу:\n"
-                         "1️⃣ Try Diving - 1,800 THB\n"
-                         "2️⃣ Open Water Diver - 8,890 THB\n"
-                         "3️⃣ Advanced Open Water - 8,490 THB\n\n"
-                         "💬 Напишите мне название программы и дату!")
+# Обработчик кнопки "Получить документы"
+@router.message(lambda message: message.text == "\ud83d\udcc2 Получить документы")
+async def get_documents(message: types.Message):
+    try:
+        document_path = "example_document.pdf"  # Укажите путь к вашему документу
+        await message.answer_document(open(document_path, "rb"))
+    except Exception as e:
+        await message.answer("Не удалось загрузить документы. Пожалуйста, попробуйте позже.")
+        logging.error(f"Ошибка загрузки документов: {e}")
 
-# Хендлер для кнопки "Оплата"
-@dp.message_handler(lambda message: message.text == "💳 Оплата")
-async def payment(message: types.Message):
-    await message.answer("💰 Вы можете внести предоплату 400 THB:\n\n"
-                         "🔹 Wise: [ссылка](https://wise.com_ссылка)\n"
-                         "🔹 PayPal: [ссылка](https://paypal.meссылка)\n"
-                         "Оставшуюся сумму можно оплатить на месте.")
-
-# Хендлер для кнопки "Локация дайв-центра"
-@dp.message_handler(lambda message: message.text == "📍 Локация дайв-центра")
-async def location(message: types.Message):
-    await message.answer("📍 Наш дайв-центр находится на Ко Тао:\n"
-                         "[Google Maps](https://maps.app.goo.gl/dw5MsmvDowu3RSqF9)")
+# Добавляем ссылку на сайт в основной раздел
+@router.message(lambda message: message.text == "\ud83d\udcb3 Оплатить")
+async def website_link(message: types.Message):
+    await message.answer(
+        "Посетите наш сайт для получения дополнительной информации:",
+        reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="Посетить сайт", url="https://scubabirds.com")]
+            ]
+        )
+    )
 
 # Запуск бота
+async def main():
+    dp.include_router(router)
+    await dp.start_polling(bot)
+
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+    asyncio.run(main())
