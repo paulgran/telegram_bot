@@ -48,10 +48,11 @@ async def services(message: types.Message):
 @dp.message(lambda message: message.text == "💰 Цены")
 async def prices(message: types.Message):
     text = "💰 Наши цены:\n\n" \
-           "🔹 Пробное погружение — 2,800 TBH \n" \
-           "🔹 Курс Open Water Diver (до 18 метров) — 8,990 TBH \n" \
-           "🔹 Курс Advance Open Water Diver — 8,490 THB \n" \
-           "🔹 Курс Rescue Diver — 8,500 THB \n\n" \
+           "🔹 Пробное погружение — 2 800 TBH \n" \
+           "🔹 Курс Open Water Diver (до 18 метров) — 8 990 TBH \n" \
+           "🔹 Курс Advance Open Water Diver — 8 490 THB \n" \
+           "🔹 Курс Rescue Diver — 8 500 THB \n" \
+           "🔹 Fun Diving — от 1 400 THB \n\n" \
            "Свяжитесь с нами для заказа!"
     await message.answer(text)
 
@@ -65,7 +66,7 @@ async def send_documents(message: types.Message):
 # Отправка ссылки на оплату
 @dp.message(lambda message: message.text == "💳 Оплатить")
 async def payment_link(message: types.Message):
-    text = "💳 Оплатить можно по ссылке:\n\n" \
+    text = "💳 Оплатить можно по ссылке: https://wise.com/pay/business/scubabirdscoltd\n\n" \
            "[Оплата](https://wise.com/pay/business/scubabirdscoltd)"
     await message.answer(text, parse_mode="Markdown")
 
