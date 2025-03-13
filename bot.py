@@ -8,7 +8,9 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.client.default import DefaultBotProperties  # ✅ Исправлено
+from aiogram.client.default import DefaultBotProperties
+from fastapi import FastAPI
+import uvicorn
 
 # 🔹 Загрузка API-ключей
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -19,7 +21,7 @@ if not TOKEN:
 if not OPENAI_API_KEY:
     raise ValueError("❌ Ошибка: OPENAI_API_KEY не загружен!")
 
-# 🔹 Инициализация бота (исправлено!)
+# 🔹 Инициализация бота
 bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
 dp = Dispatcher(storage=MemoryStorage())
 
@@ -30,11 +32,18 @@ logging.basicConfig(level=logging.INFO)
 main_keyboard = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="📋 Наши услуги"), KeyboardButton(text="💰 Цены")],
-        [KeyboardButton(text="📂 Медицинская справка"), KeyboardButton(text="💳 Оплатить")],
+        [KeyboardButton(text="📂 Мед справка"), KeyboardButton(text="💳 Оплатить")],
         [KeyboardButton(text="🗓 Забронировать")]
     ],
     resize_keyboard=True
 )
+
+# 🔹 Создаём FastAPI-сервер
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"status": "Бот работает!"}
 
 # 🔹 Функция парсинга информации с сайта
 def get_info_from_scubabirds():
@@ -53,7 +62,7 @@ def get_info_from_scubabirds():
         logging.error(f"❌ Ошибка парсинга: {e}")
         return "❌ Ошибка при получении информации с сайта."
 
-# 🔹 Функция общения с GPT (исправленная)
+# 🔹 Функция общения с GPT (с обработкой ошибок)
 def ask_gpt(user_query):
     try:
         site_info = get_info_from_scubabirds()
@@ -117,10 +126,11 @@ async def gpt_response(message: types.Message):
     for i in range(0, len(response), 4000):
         await message.answer(response[i:i+4000])
 
-# 🔹 Функция запуска бота
+# 🔹 Запуск бота и FastAPI-сервера
 async def main():
     logging.info("✅ Бот запущен!")
-    await dp.start_polling(bot)
+    asyncio.create_task(dp.start_polling(bot))  # Запуск бота
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8080)))  # Запуск сервера
 
 # 🔹 Запуск (с обработкой ошибок)
 if __name__ == "__main__":
