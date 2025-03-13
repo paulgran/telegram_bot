@@ -5,14 +5,15 @@ from aiogram import Bot, Dispatcher, types, F
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.client.default import DefaultBotProperties  # ✅ Добавлен импорт DefaultBotProperties
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 if not TOKEN:
     raise ValueError("❌ Ошибка: TELEGRAM_BOT_TOKEN не загружен!")
 
-# Создаём бота и диспетчер
-bot = Bot(token=TOKEN, parse_mode="HTML")
+# ✅ Исправлено: передаём parse_mode через DefaultBotProperties
+bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
 dp = Dispatcher(storage=MemoryStorage())
 
 # Логирование
@@ -22,7 +23,8 @@ logging.basicConfig(level=logging.INFO)
 main_keyboard = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="📋 Наши услуги"), KeyboardButton(text="💰 Цены")],
-        [KeyboardButton(text="📂 Получить документы"), KeyboardButton(text="💳 Оплатить")]
+        [KeyboardButton(text="📂 Получить документы"), KeyboardButton(text="💳 Оплатить")],
+        [KeyboardButton(text="🗓 Забронировать")]
     ],
     resize_keyboard=True
 )
@@ -79,7 +81,18 @@ async def payment_link(message: types.Message):
         "💳 Оплатить можно по ссылке:\n\n"
         '<a href="https://wise.com/pay/business/scubabirdscoltd">Оплата</a>'
     )
-    await message.answer(text, parse_mode="HTML")
+    await message.answer(text)
+
+# Обработчик кнопки "Забронировать"
+@dp.message(F.text == "🗓 Забронировать")
+async def booking(message: types.Message):
+    text = (
+        "🗓 <b>Бронирование</b>\n\n"
+        "🔹 Забронировать онлайн: <a href='https://www.scubabirds.com/booking-now.html'>Scuba Birds Booking</a>\n"
+        "🔹 Написать в WhatsApp: <a href='https://wa.me/66990307571'>+66 990 307 571</a>\n\n"
+        "Выберите удобный способ бронирования!"
+    )
+    await message.answer(text)
 
 # Функция для запуска бота
 async def main():
