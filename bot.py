@@ -4,13 +4,12 @@ import os
 import openai
 import requests
 from bs4 import BeautifulSoup
-from aiogram import Bot, Dispatcher, types, F
+from aiogram import Bot, Dispatcher, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.client.default import DefaultBotProperties
 
-# Загрузка API-ключей
+# 🔹 Загрузка API-ключей
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
@@ -19,14 +18,14 @@ if not TOKEN:
 if not OPENAI_API_KEY:
     raise ValueError("❌ Ошибка: OPENAI_API_KEY не загружен!")
 
-# Инициализация бота
-bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
+# 🔹 Инициализация бота
+bot = Bot(token=TOKEN, parse_mode="HTML")
 dp = Dispatcher(storage=MemoryStorage())
 
-# Логирование
+# 🔹 Логирование
 logging.basicConfig(level=logging.INFO)
 
-# Клавиатура
+# 🔹 Клавиатура
 main_keyboard = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="📋 Наши услуги"), KeyboardButton(text="💰 Цены")],
@@ -36,7 +35,7 @@ main_keyboard = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
 
-# 🟢 Функция для парсинга информации с сайта
+# 🔹 Функция парсинга информации с сайта
 def get_info_from_scubabirds():
     url = "https://www.scubabirds.ru/"
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -50,24 +49,29 @@ def get_info_from_scubabirds():
             return text_content[:1500]  # Ограничим до 1500 символов
         return "Ошибка при получении данных с сайта."
     except Exception as e:
-        logging.error(f"Ошибка парсинга: {e}")
+        logging.error(f"❌ Ошибка парсинга: {e}")
         return "❌ Ошибка при получении информации с сайта."
 
-# 🟢 Функция для общения с GPT
+# 🔹 Функция общения с GPT (исправленная)
 def ask_gpt(user_query):
-    site_info = get_info_from_scubabirds()
-    
-    openai.api_key = OPENAI_API_KEY
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "Ты помощник, который отвечает на вопросы о дайвинге."},
-            {"role": "user", "content": f"Вот информация с сайта Scuba Birds: {site_info}. Теперь ответь на вопрос: {user_query}"}
-        ]
-    )
-    return response["choices"][0]["message"]["content"]
+    try:
+        site_info = get_info_from_scubabirds()
+        
+        openai.api_key = OPENAI_API_KEY
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "Ты помощник, который отвечает на вопросы о дайвинге."},
+                {"role": "user", "content": f"Вот информация с сайта Scuba Birds: {site_info}. Теперь ответь на вопрос: {user_query}"}
+            ]
+        )
+        return response["choices"][0]["message"]["content"]
 
-# 🟢 Обработчик команды /start
+    except openai.error.OpenAIError as e:
+        logging.error(f"❌ Ошибка OpenAI: {e}")
+        return "❌ Ошибка при получении ответа от GPT."
+
+# 🔹 Команда /start
 @dp.message(Command("start"))
 async def start_command(message: types.Message):
     await message.answer(
@@ -75,8 +79,8 @@ async def start_command(message: types.Message):
         reply_markup=main_keyboard
     )
 
-# 🟢 Обработчики кнопок
-@dp.message(F.text == "📋 Наши услуги")
+# 🔹 Обработчики кнопок
+@dp.message(lambda message: message.text and "услуги" in message.text.lower())
 async def services(message: types.Message):
     text = (
         "📌 Мы предлагаем следующие услуги:\n"
@@ -89,7 +93,7 @@ async def services(message: types.Message):
     )
     await message.answer(text)
 
-@dp.message(F.text == "💰 Цены")
+@dp.message(lambda message: message.text and "цены" in message.text.lower())
 async def prices(message: types.Message):
     text = (
         "💰 Наши цены:\n\n"
@@ -102,50 +106,26 @@ async def prices(message: types.Message):
     )
     await message.answer(text)
 
-@dp.message(F.text == "📂 Медицинская форма")
-async def send_documents(message: types.Message):
-    document_path = "medical_form.pdf"  
-    if os.path.exists(document_path):
-        await message.answer_document(types.FSInputFile(document_path), caption="📎 Вот ваш документ!")
-    else:
-        await message.answer("❌ Документ не найден! Пожалуйста, свяжитесь с администрацией.")
-
-@dp.message(F.text == "💳 Оплатить")
-async def payment_link(message: types.Message):
-    text = (
-        "💳 Оплатить можно по ссылке:\n\n"
-        '<a href="https://wise.com/pay/business/scubabirdscoltd">Оплата</a>'
-    )
-    await message.answer(text)
-
-@dp.message(F.text == "🗓 Забронировать")
-async def booking(message: types.Message):
-    text = (
-        "🗓 <b>Бронирование</b>\n\n"
-        "🔹 Забронировать онлайн: <a href='https://www.scubabirds.com/booking-now.html'>Scuba Birds Booking</a>\n"
-        "🔹 Написать в WhatsApp: <a href='https://wa.me/66990307571'>+66 990 307 571</a>\n\n"
-        "Выберите удобный способ бронирования!"
-    )
-    await message.answer(text)
-
-# 🟢 Обработчик любых других сообщений (GPT отвечает на вопросы)
+# 🔹 GPT отвечает на вопросы
 @dp.message()
 async def gpt_response(message: types.Message):
     user_query = message.text
     response = ask_gpt(user_query)
     
     # Если ответ слишком длинный, разбиваем на части
-    if len(response) > 4000:
-        for i in range(0, len(response), 4000):
-            await message.answer(response[i:i+4000])
-    else:
-        await message.answer(response)
+    for i in range(0, len(response), 4000):
+        await message.answer(response[i:i+4000])
 
-# 🟢 Запуск бота
+# 🔹 Функция запуска бота
 async def main():
     logging.info("✅ Бот запущен!")
-    async with bot:
-        await dp.start_polling(bot)
+    await dp.start_polling(bot)
 
+# 🔹 Запуск (с обработкой ошибок)
 if __name__ == "__main__":
-    asyncio.run(main())
+    import sys
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        logging.info("Бот остановлен вручную.")
+        sys.exit(0)
