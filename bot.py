@@ -8,6 +8,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.client.default import DefaultBotProperties  # ✅ Исправлено
 
 # 🔹 Загрузка API-ключей
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -18,8 +19,8 @@ if not TOKEN:
 if not OPENAI_API_KEY:
     raise ValueError("❌ Ошибка: OPENAI_API_KEY не загружен!")
 
-# 🔹 Инициализация бота
-bot = Bot(token=TOKEN, parse_mode="HTML")
+# 🔹 Инициализация бота (исправлено!)
+bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
 dp = Dispatcher(storage=MemoryStorage())
 
 # 🔹 Логирование
@@ -29,7 +30,7 @@ logging.basicConfig(level=logging.INFO)
 main_keyboard = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="📋 Наши услуги"), KeyboardButton(text="💰 Цены")],
-        [KeyboardButton(text="📂 Получить документы"), KeyboardButton(text="💳 Оплатить")],
+        [KeyboardButton(text="📂 Медицинская справка"), KeyboardButton(text="💳 Оплатить")],
         [KeyboardButton(text="🗓 Забронировать")]
     ],
     resize_keyboard=True
