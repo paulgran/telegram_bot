@@ -102,7 +102,7 @@ async def prices(message: types.Message):
     )
     await message.answer(text)
 
-@dp.message(F.text == "📂 Получить документы")
+@dp.message(F.text == "📂 Медицинская форма")
 async def send_documents(message: types.Message):
     document_path = "medical_form.pdf"  
     if os.path.exists(document_path):
