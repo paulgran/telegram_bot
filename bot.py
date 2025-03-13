@@ -4,6 +4,7 @@ import os
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
+from aiogram.fsm.storage.memory import MemoryStorage
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
@@ -11,8 +12,8 @@ if not TOKEN:
     raise ValueError("❌ Ошибка: TELEGRAM_BOT_TOKEN не загружен!")
 
 # Создаём бота и диспетчер
-bot = Bot(token=TOKEN)
-dp = Dispatcher()
+bot = Bot(token=TOKEN, parse_mode="HTML")
+dp = Dispatcher(storage=MemoryStorage())
 
 # Логирование
 logging.basicConfig(level=logging.INFO)
@@ -29,7 +30,7 @@ main_keyboard = ReplyKeyboardMarkup(
 # Обработчик команды /start
 @dp.message(Command("start"))
 async def start_command(message: types.Message):
-    await message.reply(
+    await message.answer(
         "Добрый день! Мы рады приветствовать вас в нашем Дайв Центре Scuba Birds. Чем могу вам помочь?", 
         reply_markup=main_keyboard
     )
@@ -42,47 +43,49 @@ async def services(message: types.Message):
         "1️⃣ Пробное погружение\n"
         "2️⃣ Получение первичного сертификата Дайвера\n"
         "3️⃣ Fun Diving\n"
-        "4️⃣ Продолжить обучение дайвинг\n\n"
-        "Ознакомьтесь с нашими ценами в разделе Цены!"
+        "4️⃣ Продолжить обучение дайвингу\n"
+        "5️⃣ Обучение профессионалов\n\n"
+        "Ознакомьтесь с нашими ценами в разделе <b>Цены</b>!"
     )
-    await message.reply(text)
+    await message.answer(text)
 
 # Отправка цен
 @dp.message(F.text == "💰 Цены")
 async def prices(message: types.Message):
     text = (
         "💰 Наши цены:\n\n"
-        "🔹 Пробное погружение — 2,800 TBH \n"
-        "🔹 Курс Open Water Diver (до 18 метров) — 8,990 TBH \n"
-        "🔹 Курс Advance Open Water Diver — 8,490 THB \n"
-        "🔹 Курс Rescue Diver — 8,500 THB \n\n"
+        "🔹 <b>Пробное погружение</b> — 2,800 TBH \n"
+        "🔹 <b>Курс Open Water Diver</b> (до 18 метров) — 8,990 TBH \n"
+        "🔹 <b>Курс Advance Open Water Diver</b> — 8,490 THB \n"
+        "🔹 <b>Курс Rescue Diver</b> — 8,500 THB \n"
+        "🔹 <b>Курс Dive Master</b> — от 35,000 THB \n\n"
         "Свяжитесь с нами для заказа!"
     )
-    await message.reply(text)
+    await message.answer(text)
 
 # Отправка документов
 @dp.message(F.text == "📂 Получить документы")
 async def send_documents(message: types.Message):
     document_path = "medical_form.pdf"  # Путь к файлу
     if os.path.exists(document_path):
-        with open(document_path, "rb") as doc:
-            await message.reply_document(doc, caption="📎 Вот ваш документ!")
+        await message.answer_document(types.FSInputFile(document_path), caption="📎 Вот ваш документ!")
     else:
-        await message.reply("❌ Документ не найден! Пожалуйста, свяжитесь с администрацией.")
+        await message.answer("❌ Документ не найден! Пожалуйста, свяжитесь с администрацией.")
 
 # Отправка ссылки на оплату
 @dp.message(F.text == "💳 Оплатить")
 async def payment_link(message: types.Message):
     text = (
         "💳 Оплатить можно по ссылке:\n\n"
-        "[Оплата](https://wise.com/pay/business/scubabirdscoltd)"
+        '<a href="https://wise.com/pay/business/scubabirdscoltd">Оплата</a>'
     )
-    await message.reply(text, parse_mode="MarkdownV2")
+    await message.answer(text, parse_mode="HTML")
 
 # Функция для запуска бота
 async def main():
     logging.info("✅ Бот запущен!")
-    await dp.start_polling(bot)
+    async with bot:
+        await dp.start_polling(bot)
 
 # Запуск бота через asyncio
 if __name__ == "__main__":
