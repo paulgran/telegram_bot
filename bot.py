@@ -126,17 +126,26 @@ async def gpt_response(message: types.Message):
     for i in range(0, len(response), 4000):
         await message.answer(response[i:i+4000])
 
-# 🔹 Запуск бота и FastAPI-сервера
-async def main():
+# 🔹 Запуск бота
+async def start_bot():
     logging.info("✅ Бот запущен!")
-    asyncio.create_task(dp.start_polling(bot))  # Запуск бота
-    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8080)))  # Запуск сервера
+    await dp.start_polling(bot)
+
+# 🔹 Запуск FastAPI
+def start_fastapi():
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8080)))
+
+# 🔹 Запуск бота и сервера
+async def main():
+    loop = asyncio.get_running_loop()
+    bot_task = loop.create_task(start_bot())  # Запуск бота
+    server_task = loop.run_in_executor(None, start_fastapi)  # Запуск сервера в отдельном потоке
+    await asyncio.gather(bot_task, server_task)
 
 # 🔹 Запуск (с обработкой ошибок)
 if __name__ == "__main__":
-    import sys
     try:
-        asyncio.run(main())
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(main())  # 🔥 Исправлено!
     except (KeyboardInterrupt, SystemExit):
-        logging.info("Бот остановлен вручную.")
-        sys.exit(0)
+        logging.info("Бот остановлен.")
