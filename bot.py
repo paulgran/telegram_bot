@@ -62,7 +62,7 @@ def get_info_from_scubabirds():
         logging.error(f"❌ Ошибка парсинга: {e}")
         return "❌ Ошибка при получении информации с сайта."
 
-# 🔹 Функция общения с GPT (с обработкой ошибок)
+# 🔹 Функция общения с GPT (исправлена)
 def ask_gpt(user_query):
     try:
         site_info = get_info_from_scubabirds()
@@ -79,7 +79,11 @@ def ask_gpt(user_query):
 
     except openai.error.OpenAIError as e:
         logging.error(f"❌ Ошибка OpenAI: {e}")
-        return "❌ Ошибка при получении ответа от GPT."
+        return "❌ Ошибка: OpenAI временно недоступен. Попробуйте позже."
+
+    except Exception as e:
+        logging.error(f"❌ Неизвестная ошибка: {e}")
+        return "❌ Ошибка сервера. Попробуйте позже."
 
 # 🔹 Команда /start
 @dp.message(Command("start"))
@@ -96,9 +100,9 @@ async def services(message: types.Message):
         "📌 Мы предлагаем следующие услуги:\n"
         "1️⃣ Пробное погружение\n"
         "2️⃣ Получение первичного сертификата Дайвера\n"
-        "3️⃣ Fun Diving\n"
+        "3️⃣ Нырялка для сертифицированных дайверов\n"
         "4️⃣ Продолжить обучение дайвингу\n"
-        "5️⃣ Обучение профессионалов\n\n"
+        "5️⃣ Обучение профессионалов (Dive Master/Instructor)\n\n"
         "Ознакомьтесь с нашими ценами в разделе <b>Цены</b>!"
     )
     await message.answer(text)
@@ -116,36 +120,53 @@ async def prices(message: types.Message):
     )
     await message.answer(text)
 
+# 🔹 Отправка мед. справки
+@dp.message(lambda message: message.text and "мед справка" in message.text.lower())
+async def send_medical_form(message: types.Message):
+    document_path = "medical_form.pdf"  # Укажите правильное имя файла
+
+    if os.path.exists(document_path):
+        await message.answer_document(types.FSInputFile(document_path), caption="📎 Вот ваша медицинская справка!")
+    else:
+        await message.answer("❌ Медицинская справка не найдена! Свяжитесь с администрацией.")
+
+# 🔹 Кнопка бронирования
+@dp.message(lambda message: message.text and "забронировать" in message.text.lower())
+async def booking(message: types.Message):
+    text = (
+        "🗓 <b>Бронирование</b>\n\n"
+        "🔹 Забронировать онлайн: <a href='https://www.scubabirds.com/booking-now.html'>Scuba Birds Booking</a>\n"
+        "🔹 Написать в WhatsApp: <a href='https://wa.me/66990307571'>+66 990 307 571</a>\n\n"
+        "Выберите удобный способ бронирования!"
+    )
+    await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
+
 # 🔹 GPT отвечает на вопросы
 @dp.message()
 async def gpt_response(message: types.Message):
     user_query = message.text
     response = ask_gpt(user_query)
     
-    # Если ответ слишком длинный, разбиваем на части
     for i in range(0, len(response), 4000):
         await message.answer(response[i:i+4000])
 
-# 🔹 Запуск бота
+# 🔹 Запуск бота и сервера
 async def start_bot():
     logging.info("✅ Бот запущен!")
     await dp.start_polling(bot)
 
-# 🔹 Запуск FastAPI
 def start_fastapi():
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8080)))
 
-# 🔹 Запуск бота и сервера
 async def main():
     loop = asyncio.get_running_loop()
-    bot_task = loop.create_task(start_bot())  # Запуск бота
-    server_task = loop.run_in_executor(None, start_fastapi)  # Запуск сервера в отдельном потоке
+    bot_task = loop.create_task(start_bot())
+    server_task = loop.run_in_executor(None, start_fastapi)
     await asyncio.gather(bot_task, server_task)
 
-# 🔹 Запуск (с обработкой ошибок)
 if __name__ == "__main__":
     try:
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(main())  # 🔥 Исправлено!
+        loop.run_until_complete(main())
     except (KeyboardInterrupt, SystemExit):
         logging.info("Бот остановлен.")
