@@ -1,4 +1,3 @@
-
 import logging
 import os
 import openai
@@ -10,12 +9,9 @@ import asyncio
 
 from config import OPENAI_API_KEY, TELEGRAM_TOKEN, GPT_MODEL
 
-# Настройка логирования
 logging.basicConfig(level=logging.INFO)
 
-# Установка ключа OpenAI
 openai.api_key = OPENAI_API_KEY
-
 bot = Bot(token=TELEGRAM_TOKEN, parse_mode=ParseMode.HTML)
 dp = Dispatcher()
 
