@@ -1,7 +1,0 @@
-aiogram
-openai
-requests
-beautifulsoup
-fastapi
-uvicorn
-python-dotenv
