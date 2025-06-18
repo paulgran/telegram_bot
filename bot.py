@@ -1,18 +1,23 @@
 import logging
 import os
 import openai
+import asyncio
+
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
-import asyncio
+from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.client.default import DefaultBotProperties
 
 from config import OPENAI_API_KEY, TELEGRAM_TOKEN, GPT_MODEL
 
 logging.basicConfig(level=logging.INFO)
 
 openai.api_key = OPENAI_API_KEY
-bot = Bot(token=TELEGRAM_TOKEN, parse_mode=ParseMode.HTML)
+bot = Bot(
+    token=TELEGRAM_TOKEN,
+    default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+)
 dp = Dispatcher()
 
 def get_main_keyboard():

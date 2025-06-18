@@ -1,2 +1,2 @@
 openai
-aiogram
+aiogram==3.7.0
