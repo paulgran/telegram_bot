@@ -1,7 +1,3 @@
-
-import logging
-logging.basicConfig(level=logging.INFO)
-
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command, CommandStart
@@ -81,15 +77,11 @@ async def gpt_handler(message: Message):
         return
     await message.answer(get_text("thinking", lang))
     try:
-        response = try:
-    response = openai.ChatCompletion.create(
+        response = openai.ChatCompletion.create(
             model=GPT_MODEL,
             messages=[{"role": "user", "content": message.text}]
         )
         reply = response.choices[0].message.content
-except Exception as e:
-    logging.error(f'[GPT ERROR] {{e}}')
-    response = type('obj', (object,), {{'choices':[type('sub', (object,), {{'message':{{'content': '❌ Ошибка при обращении к GPT. Попробуйте позже.'}}}})]}})()
         await message.answer(reply)
         log_message(user_id, message.text, reply)
     except Exception:
@@ -100,3 +92,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+except Exception as e:
+    import logging
+    logging.error(f'[GPT ERROR] {e}')
+    reply = '❌ Ошибка при обращении к GPT. Попробуйте позже.'
