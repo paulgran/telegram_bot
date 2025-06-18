@@ -8,14 +8,14 @@ from aiogram.filters import Command, CommandStart
 from aiogram.enums import ParseMode
 import asyncio
 import json
-from config import TELEGRAM_TOKEN, GPT_API_KEY, GPT_MODEL
+from config import TELEGRAM_TOKEN, OPENAI_API_KEY, GPT_MODEL
 import openai
 from usage import check_and_update_usage, reset_usage
 from logger import log_message
 from langs import get_text, set_lang, get_lang
 from stats import log_user
 
-openai.api_key = GPT_API_KEY
+openai.api_key = OPENAI_API_KEY
 bot = Bot(token=TELEGRAM_TOKEN, parse_mode=ParseMode.HTML)
 dp = Dispatcher()
 ADMIN_ID = 381103315
