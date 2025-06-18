@@ -1,18 +1,21 @@
-print("✅ Новый bot.py загружен")
+
+import logging
+logging.basicConfig(level=logging.INFO)
+
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command, CommandStart
 from aiogram.enums import ParseMode
 import asyncio
 import json
-from config import TELEGRAM_TOKEN, OPENAI_API_KEY, GPT_MODEL
+from config import TELEGRAM_TOKEN, GPT_API_KEY, GPT_MODEL
 import openai
 from usage import check_and_update_usage, reset_usage
 from logger import log_message
 from langs import get_text, set_lang, get_lang
 from stats import log_user
 
-openai.api_key = OPENAI_API_KEY
+openai.api_key = GPT_API_KEY
 bot = Bot(token=TELEGRAM_TOKEN, parse_mode=ParseMode.HTML)
 dp = Dispatcher()
 ADMIN_ID = 381103315
@@ -78,11 +81,15 @@ async def gpt_handler(message: Message):
         return
     await message.answer(get_text("thinking", lang))
     try:
-        response = openai.ChatCompletion.create(
+        response = try:
+    response = openai.ChatCompletion.create(
             model=GPT_MODEL,
             messages=[{"role": "user", "content": message.text}]
         )
         reply = response.choices[0].message.content
+except Exception, e:
+    logging.error(f'[GPT ERROR] {{e}}')
+    response = type('obj', (object,), {{'choices':[type('sub', (object,), {{'message':{{'content': '❌ Ошибка при обращении к GPT. Попробуйте позже.'}}}})]}})()
         await message.answer(reply)
         log_message(user_id, message.text, reply)
     except Exception:
@@ -93,7 +100,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-except Exception as e:
-    import logging
-    logging.error(f'[GPT ERROR] {e}')
-    reply = '❌ Ошибка при обращении к GPT. Попробуйте позже.'
